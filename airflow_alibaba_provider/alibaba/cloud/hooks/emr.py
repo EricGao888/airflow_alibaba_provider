@@ -69,9 +69,13 @@ class EmrServerlessSparkHook(BaseHook, LoggingMixin):
         engine_release_version: str | None,
         entry_point: str,
         entry_point_args: List[str],
+        sql: str | None,
         spark_submit_parameters: str,
         is_prod: bool,
     ) -> StartJobRunResponse:
+        if sql is not None:
+            entry_point_args = ["-e", sql]
+
         env = "production" if is_prod else "dev"
         self.log.info("Submitting application")
         tags: List[Tag] = [Tag("environment", env), Tag("workflow", "true")]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any, List, Sequence
 
 from deprecated.classic import deprecated
 
@@ -17,6 +17,10 @@ if TYPE_CHECKING:
 class EmrServerlessSparkStartJobRunOperator(BaseOperator):
     """Operator for users to submit EMR Serverless Spark jobs"""
 
+    template_fields: Sequence[str] = ("sql",)
+    template_fields_renderers = {"sql": "sql"}
+    template_ext: Sequence[str] = (".sql", ".hql")
+
     def __init__(
             self,
             *,
@@ -29,9 +33,10 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
             name: str,
             engine_release_version: str | None = None,
             entry_point: str,
-            entry_point_args: List[str],
             spark_submit_parameters: str,
             is_prod: bool,
+            entry_point_args: List[str] = None,
+            sql: str | None = None,
             **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -48,6 +53,7 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
         self.engine_release_version: str | None = engine_release_version
         self.entry_point: str = entry_point
         self.entry_point_args: List[str] = entry_point_args
+        self.sql = sql
         self.spark_submit_parameters: str = spark_submit_parameters
         self.is_prod: bool = is_prod
 
@@ -73,6 +79,7 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
             engine_release_version=self.engine_release_version,
             entry_point=self.entry_point,
             entry_point_args=self.entry_point_args,
+            sql=self.sql,
             spark_submit_parameters=self.spark_submit_parameters,
             is_prod=self.is_prod,
         )
