@@ -17,8 +17,8 @@ if TYPE_CHECKING:
 class EmrServerlessSparkStartJobRunOperator(BaseOperator):
     """Operator for users to submit EMR Serverless Spark jobs"""
 
-    template_fields: Sequence[str] = ("sql",)
-    template_fields_renderers = {"sql": "sql"}
+    template_fields: Sequence[str] = ("sql", "spark_submit_parameters")
+    template_fields_renderers = {"sql": "sql", "spark_submit_parameters": "sql"}
     template_ext: Sequence[str] = (".sql", ".hql")
 
     def __init__(
