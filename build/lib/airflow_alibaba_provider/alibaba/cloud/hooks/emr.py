@@ -72,6 +72,7 @@ class EmrServerlessSparkHook(BaseHook, LoggingMixin):
         sql: str | None,
         spark_submit_parameters: str,
         is_prod: bool,
+        fusion: bool | None = None,
     ) -> StartJobRunResponse:
         if sql is not None:
             entry_point_args = ["-e", sql]
@@ -89,7 +90,7 @@ class EmrServerlessSparkHook(BaseHook, LoggingMixin):
         )
 
         job_driver = JobDriver(job_driver_spark_submit)
-
+        print(f'Now starts job with fusion option: {fusion}')
         start_job_run_request = StartJobRunRequest(
             region_id=self.region,
             resource_queue_id=resource_queue_id,
@@ -98,6 +99,7 @@ class EmrServerlessSparkHook(BaseHook, LoggingMixin):
             release_version=engine_release_version,
             tags=tags,
             job_driver=job_driver,
+            fusion=fusion,
         )
 
         runtime = util_models.RuntimeOptions()

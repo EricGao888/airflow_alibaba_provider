@@ -32,6 +32,7 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
             code_type: str,
             name: str,
             engine_release_version: str | None = None,
+            fusion: bool | None = None,
             entry_point: str,
             spark_submit_parameters: str | None = None,
             is_prod: bool,
@@ -56,6 +57,7 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
         self.sql = sql
         self.spark_submit_parameters: str = spark_submit_parameters
         self.is_prod: bool = is_prod
+        self.fusion: bool = fusion
 
     @cached_property
     def hook(self) -> EmrServerlessSparkHook:
@@ -82,6 +84,7 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
             sql=self.sql,
             spark_submit_parameters=self.spark_submit_parameters,
             is_prod=self.is_prod,
+            fusion=self.fusion,
         )
         self.job_run_id = submit_response.body.job_run_id
         self.poll_job_run_state()
