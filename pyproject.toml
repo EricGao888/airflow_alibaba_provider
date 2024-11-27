@@ -5,14 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "airflow_alibaba_provider"
 authors = [
-    {name = "EricGao888", email = "chufenggao@gmail.com"}
+    {name = "EricGao888", email = "chufenggao@gmail.com"},
+    {name = 'AlvinQi', email = 'peng.edy@gmail.com'}
 ]
 description = "package description"
-version = "0.0.2"
+version = "0.0.3"
 readme = "README.md"
 requires-python = ">=3.7"
 dependencies = [
-    "apache-airflow >= 2.7.0",
+    "apache-airflow >= 2.6.0",
     "alibabacloud_tea_openapi >= 0.3.7",
     "alibabacloud_emr_serverless_spark20230808 >= 1.0.0"
 ]
