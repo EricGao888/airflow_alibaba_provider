@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import time
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, List, Sequence
+from typing import TYPE_CHECKING, Any, List, Sequence, Dict
 
 from deprecated.classic import deprecated
 
 from airflow.exceptions import AirflowException, AirflowProviderDeprecationWarning
 from airflow.models import BaseOperator
-from airflow_alibaba_provider.alibaba.cloud.hooks.emr import AppState, EmrServerlessSparkHook
+from airflow_alibaba_provider.alibaba.cloud.hooks.emr import AppState, EmrServerlessSparkHook, Tag
 
 if TYPE_CHECKING:
     from airflow.utils.context import Context
@@ -38,6 +38,7 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
             is_prod: bool,
             entry_point_args: List[str] = None,
             sql: str | None = None,
+            tags: List[Dict] = None,
             **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -58,6 +59,8 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
         self.spark_submit_parameters: str = spark_submit_parameters
         self.is_prod: bool = is_prod
         self.fusion: bool = fusion
+        # self.tags: List[Tag] = [Tag(**tag) for tag in tags] if tags else []
+        self.tags: List[Tag] = [Tag(**dict(key=k, value=v)) for tag in tags for k, v in tag.items()] if tags else []
 
     @cached_property
     def hook(self) -> EmrServerlessSparkHook:
@@ -85,6 +88,7 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
             spark_submit_parameters=self.spark_submit_parameters,
             is_prod=self.is_prod,
             fusion=self.fusion,
+            tags=self.tags,
         )
         self.job_run_id = submit_response.body.job_run_id
         self.poll_job_run_state()

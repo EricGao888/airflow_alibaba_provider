@@ -73,13 +73,15 @@ class EmrServerlessSparkHook(BaseHook, LoggingMixin):
         spark_submit_parameters: str,
         is_prod: bool,
         fusion: bool | None = None,
+        tags: List[Tag] = None,
     ) -> StartJobRunResponse:
         if sql is not None:
             entry_point_args = ["-e", sql]
 
         env = "production" if is_prod else "dev"
         self.log.info("Submitting application")
-        tags: List[Tag] = [Tag("environment", env), Tag("workflow", "true")]
+        rawtags: List[Tag] = [Tag("environment", env), Tag("workflow", "true")]
+        alltags = rawtags + tags if tags else rawtags
         engine_release_version = (
             "esr-2.1-native (Spark 3.3.1, Scala 2.12, Native Runtime)"
             if (engine_release_version is None)
@@ -90,14 +92,14 @@ class EmrServerlessSparkHook(BaseHook, LoggingMixin):
         )
 
         job_driver = JobDriver(job_driver_spark_submit)
-        print(f'Now starts job with fusion option: {fusion}')
+
         start_job_run_request = StartJobRunRequest(
             region_id=self.region,
             resource_queue_id=resource_queue_id,
             code_type=code_type,
             name=name,
             release_version=engine_release_version,
-            tags=tags,
+            tags=alltags,
             job_driver=job_driver,
             fusion=fusion,
         )
