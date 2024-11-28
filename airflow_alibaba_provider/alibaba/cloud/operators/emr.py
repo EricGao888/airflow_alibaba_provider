@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import time
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any, List, Sequence, Dict
 
 from deprecated.classic import deprecated
 
 from airflow.exceptions import AirflowException, AirflowProviderDeprecationWarning
 from airflow.models import BaseOperator
-from airflow_alibaba_provider.alibaba.cloud.hooks.emr import AppState, EmrServerlessSparkHook
+from airflow_alibaba_provider.alibaba.cloud.hooks.emr import AppState, EmrServerlessSparkHook, Tag
 
 if TYPE_CHECKING:
     from airflow.utils.context import Context
@@ -16,6 +16,10 @@ if TYPE_CHECKING:
 
 class EmrServerlessSparkStartJobRunOperator(BaseOperator):
     """Operator for users to submit EMR Serverless Spark jobs"""
+
+    template_fields: Sequence[str] = ("sql", "spark_submit_parameters", "entry_point_args")
+    template_fields_renderers = {"sql": "sql", "spark_submit_parameters": "sql", "entry_point_args": "json"}
+    template_ext: Sequence[str] = (".sql", ".hql")
 
     def __init__(
             self,
@@ -28,10 +32,13 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
             code_type: str,
             name: str,
             engine_release_version: str | None = None,
+            fusion: bool | None = None,
             entry_point: str,
-            entry_point_args: List[str],
-            spark_submit_parameters: str,
+            spark_submit_parameters: str | None = None,
             is_prod: bool,
+            entry_point_args: List[str] = None,
+            sql: str | None = None,
+            tags: List[Dict] = None,
             **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -48,8 +55,11 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
         self.engine_release_version: str | None = engine_release_version
         self.entry_point: str = entry_point
         self.entry_point_args: List[str] = entry_point_args
+        self.sql = sql
         self.spark_submit_parameters: str = spark_submit_parameters
         self.is_prod: bool = is_prod
+        self.fusion: bool = fusion
+        self.tags: List[Tag] = [Tag(**dict(key=k, value=v)) for tag in tags for k, v in tag.items()] if tags else []
 
     @cached_property
     def hook(self) -> EmrServerlessSparkHook:
@@ -73,8 +83,11 @@ class EmrServerlessSparkStartJobRunOperator(BaseOperator):
             engine_release_version=self.engine_release_version,
             entry_point=self.entry_point,
             entry_point_args=self.entry_point_args,
+            sql=self.sql,
             spark_submit_parameters=self.spark_submit_parameters,
             is_prod=self.is_prod,
+            fusion=self.fusion,
+            tags=self.tags,
         )
         self.job_run_id = submit_response.body.job_run_id
         self.poll_job_run_state()
